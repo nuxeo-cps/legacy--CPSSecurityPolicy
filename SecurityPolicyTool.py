@@ -121,7 +121,7 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
             self.increaseLoginFailureCount(user_id)
 
         if not is_anon:
-            self.unbannUser(user_id)
+            self.unbanUser(user_id)
 
     def increaseLoginFailureCount(self, user_id):
         member_info = self._members.get(user_id)
@@ -136,7 +136,7 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
         member_info = self._members.get(user_id, {})
         return member_info.get('login_failure_count', 0)
 
-    def unbannUser(self, user_id):
+    def unbanUser(self, user_id):
         member_info = self._members.get(user_id)
         if member_info and member_info.has_key('login_failure_count'):
             self._members[user_id]['login_failure_count'] = 0
@@ -157,12 +157,12 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
                 result.append(member_id)
         return result
 
-    security.declareProtected(ManagePortal, 'manage_unbannUsers')
-    def manage_unbannUsers(self, member_ids=[], REQUEST=None):
-        """Unbann users in <member_ids>"""
+    security.declareProtected(ManagePortal, 'manage_unbanUsers')
+    def manage_unbanUsers(self, member_ids=[], REQUEST=None):
+        """Unban users in <member_ids>"""
         for member_id in member_ids:
             if self.isUserBanned(member_id):
-                self.unbannUser(member_id)
+                self.unbanUser(member_id)
         if REQUEST:
             REQUEST.RESPONSE.redirect(REQUEST.URL1 + '/manage_banned_users')
 

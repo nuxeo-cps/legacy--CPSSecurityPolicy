@@ -78,7 +78,7 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
         self.assert_(
             not 'security_policy' in self.portal.portal_skins.objectIds())
 
-    def testModeSwitch(self):
+    def testSwitchMode(self):
         sptool = self.portal.portal_security_policy
         sptool.switchMode(1)
         sptool.switchMode(0)
@@ -94,7 +94,7 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
         sptool.notifyLoginAttempt('manager')
         self.assert_(not sptool.isUserBanned('manager'))
 
-    def testUserBann(self):
+    def testBanUser(self):
         sptool = self.portal.portal_security_policy
         sptool.switchToSecureMode()
 
@@ -107,11 +107,11 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
         self.assert_(sptool.isUserBanned('toto'))
         self.assertEquals(len(sptool.listBannedUsers()), 1)
 
-        sptool.unbannUser('toto')
+        sptool.unbanUser('toto')
         self.assertEquals(sptool.getLoginFailureCount('toto'), 0)
         self.assert_(not sptool.isUserBanned('toto'))
 
-    def testManageUnbannUser(self):
+    def testManageUnbanUser(self):
         sptool = self.portal.portal_security_policy
         sptool.switchToSecureMode()
 
@@ -119,7 +119,7 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
         sptool.increaseLoginFailureCount('toto')
         sptool.increaseLoginFailureCount('toto')
         self.assert_(sptool.isUserBanned('toto'))
-        sptool.manage_unbannUsers(['toto'])
+        sptool.manage_unbanUsers(['toto'])
         self.assert_(not sptool.isUserBanned('toto'))
 
     def testPasswordChangeNotification(self):

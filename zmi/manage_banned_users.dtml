@@ -9,7 +9,7 @@
 <h3>The following users have been banned due to several failed login
 attempts</h3>
 
-<form action="manage_unbannUsers">
+<form action="manage_unbanUsers">
 
 <dtml-in banned_users>
 

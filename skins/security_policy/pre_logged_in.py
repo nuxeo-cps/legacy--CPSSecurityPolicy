@@ -20,7 +20,8 @@ ac_name = request.form['ac_name']
 sptool = context.portal_security_policy
 
 if sptool.isUserBanned(ac_name):
-    return "Vous ne pouvez pas vous logger, contactez l'administrateur"
+    response.redirect(request.URL1 + '/account_deactivated')
+    return ''
 
 d = request.form
 d['__ac_name'] = ac_name

@@ -109,6 +109,10 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
 
         member_info = self._members.get(user_id, {})
         last_login_date = member_info.get('last_login_date', 0)
+
+        if last_login_date == 0:
+            return False
+
         return (time() - last_login_date
                 > self.change_passwd_after_months * 60 * 60 * 24 * 31)
 
@@ -128,7 +132,7 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
         if member_info:
             # Warning: += doesn't work here (?!)
             member_info['login_failure_count'] = \
-                member_info['login_failure_count'] + 1
+                member_info.get('login_failure_count', 0) + 1
         else:
             self._members[user_id] = {'login_failure_count': 1}
 

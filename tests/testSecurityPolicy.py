@@ -139,7 +139,7 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
         self.assertEquals(len(sptool.listExpiredUsers()), 0)
 
         # This one also too
-        sptool._members['toto']['last_login_date'] = 0
+        sptool._members['toto']['last_login_date'] = 1
         self.assert_(sptool.hasPasswordExpired('toto'))
         self.assertEquals(len(sptool.listExpiredUsers()), 1)
 

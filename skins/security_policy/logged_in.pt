@@ -1,5 +1,7 @@
 <metal:html>
 
+<tal:block define="dummy python:here.portal_security_policy.notifyLoginAttempt(request['ac_name'])" />
+
 <metal:body use-macro="here/main_template/macros/master">
 
 <metal:main fill-slot="main" 
@@ -15,8 +17,7 @@
   <div tal:condition="isAnon">
 
     <span tal:define="
-      dummy python:request.RESPONSE.expireCookie('__ac', path='/');
-      dummy python:here.portal_security_policy.notifyFailedLogin(member.getId())"/>
+      dummy python:request.RESPONSE.expireCookie('__ac', path='/')"/>
 
     <h1 i18n:translate="heading_login_failure">Login failure</h1>
 
@@ -35,8 +36,7 @@
   <div tal:condition="not: isAnon"
        tal:define="first_time python:(member.getProperty('login_time', None) ==
                               here.ZopeTime('2000/01/01'));
-                   dum_home mtool/createMemberArea;
-                   dummy python:here.portal_security_policy.notifySuccessfulLogin(member.getId())">
+                   dum_home mtool/createMemberArea">
 
     <div tal:condition="first_time">
       <div tal:define="now here/ZopeTime;

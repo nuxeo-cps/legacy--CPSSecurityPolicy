@@ -21,6 +21,7 @@ from AccessControl import ClassSecurityInfo
 from OFS.SimpleItem import SimpleItem
 from OFS.PropertyManager import PropertyManager
 from Products.CMFCore.utils import UniqueObject
+from Products.CMFCore.CMFCorePermissions import ManagePortal
 from Products.CPSInstaller.CMFInstaller import CMFInstaller
 from BTrees.OOBTree import OOBTree
 
@@ -43,11 +44,15 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
         {'id': 'change_passwd_after_months', 'type': 'int', 'mode': 'w', 
          'label': 'Change password after (months)'},
         )
-    manage_options = (PropertyManager.manage_options 
-                      + SimpleItem.manage_options)
+    manage_options = (PropertyManager.manage_options
+        + ({'label': 'Banned Users', 'action': 'manage_banned_users'},)
+        + SimpleItem.manage_options)
 
     def __init__(self):
         self._members = OOBTree()
+
+    security.declareProtected(ManagePortal, 'manage_banned_users')
+    manage_banned_users = DTMLFile('zmi/manage_banned_users', globals())
 
     def manage_editProperties(self):
         """ XXX """
@@ -84,30 +89,63 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
             widget.check_letter = check_letter
             widget.check_digit = check_digit
 
-    def notifyPasswordChangeFor(self, user):
+    def notifyPasswordChange(self, user_id):
         pass
 
-    def hasPasswordExpiredFor(self, user):
+    def hasPasswordExpired(self, user_id):
         pass
 
-    def notifyFailedLogin(self, user):
-        if self._members.has_key(user):
-            self._members[user] += 1
+    def notifyLoginAttempt(self, user_id):
+        mtool = self.portal_membership
+        is_anon = mtool.isAnonymousUser()
+        user_exists = not not mtool.getMemberById(user_id)
+
+        if is_anon and user_exists:
+            self.increaseFailureCount(user_id)
+
+        if not is_anon:
+            self.unbannUser(user_id)
+
+    def increaseFailureCount(self, user_id):
+        member_info = self._members.get(user_id, None)
+        if member_info:
+            member_info['failed_login_attempts'] += 1
         else:
-            self._members[user] = 1
+            self._members[user_id] = {'failed_login_attempts': 1}
 
-    def notifySuccessfulLogin(self, user):
-        if self._members.has_key(user):
-            del self._members[user]
+    def unbannUser(self, user_id):
+        member_info = self._members.get(user_id, None)
+        if member_info and member_info.has_key('failed_login_attempts'):
+            del self._members[user_id]['failed_login_attempts']
+
+    def isUserBanned(self, user_id):
+        mtool = self.portal_membership
+        is_anon = mtool.isAnonymousUser()
+        user_exists = not not mtool.getMemberById(user_id)
+        member_info = self._members.get(user_id, {})
+        failed_attempts = member_info.get('failed_login_attempts', 0)
+
+        return (self.allowed_passwd_errors 
+                and failed_attempts > self.allowed_passwd_errors)
 
     def listBannedUsers(self):
-        return []
+        result = []
+        for member_id in self._members.keys():
+            if self.isUserBanned(member_id):
+                result.append(member_id)
+        return result
 
-    def listUsers(self):
+    def resetUsers(self, member_ids=[]):
+        for member_id in member_ids:
+            if self.isUserBanned(member_id):
+                self.unbannUser(member_id)
+
+    def showUsers(self):
         """XXX"""
         l = []
-        for k in self._members.keys():
-            l.append((k, self._members[k]))
+        for k, v in self._members.items():
+            l.append("%s: %s" % (k, v))
+        return str(l)
         return '\n'.join(l)
 
 InitializeClass(SecurityPolicyTool)

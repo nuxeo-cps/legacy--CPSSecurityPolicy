@@ -1,0 +1,12 @@
+<dtml-var manage_page_header>
+<dtml-let management_view="'Banned Users'">
+<dtml-var manage_tabs>
+</dtml-let>
+
+<dtml-in listBannedUsers>
+
+<dtml-var sequence-item><br>
+
+</dtml-in>
+
+<dtml-var manage_page_footer>

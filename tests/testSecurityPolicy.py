@@ -62,7 +62,7 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
 
     def testToolDefaultAttributes(self):
         sptool = self.portal.portal_security_policy
-        self.assertEquals(len(sptool._members), 0)
+        self.assertEquals(len(sptool.listBannedUsers()), 0)
         self.assertEquals(sptool.allowed_passwd_errors, 3)
         self.assertEquals(sptool.change_passwd_after_months, 6)
 
@@ -77,6 +77,30 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
         sptool.switchToInsecureMode()
         self.assert_(
             not 'security_policy' in self.portal.portal_skins.objectIds())
+
+    def testNotifyLoginAttempt(self):
+        sptool = self.portal.portal_security_policy
+        sptool.switchToSecureMode()
+        sptool.notifyLoginAttempt('manager')
+        sptool.notifyLoginAttempt('manager')
+        sptool.notifyLoginAttempt('manager')
+        sptool.notifyLoginAttempt('manager')
+        self.assert_(not sptool.isUserBanned('manager'))
+
+    def testUserBann(self):
+        sptool = self.portal.portal_security_policy
+        sptool.switchToSecureMode()
+
+        sptool.increaseFailureCount('toto')
+        self.assertEquals(sptool._members['toto']['failed_login_attempts'], 1)
+        sptool.increaseFailureCount('toto')
+        self.assertEquals(sptool._members['toto']['failed_login_attempts'], 2)
+        sptool.increaseFailureCount('toto')
+        sptool.increaseFailureCount('toto')
+        self.assert_(sptool.isUserBanned('toto'))
+
+        sptool.unbannUser('toto')
+        self.assert_(not sptool.isUserBanned('toto'))
 
 def test_suite():
     suite = unittest.TestSuite()

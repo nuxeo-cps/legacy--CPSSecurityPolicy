@@ -5,14 +5,14 @@
 <metal:main fill-slot="main">
 
   <form action="" method="post"
-        tal:attributes="action string:${base_url}logged_in">
+        tal:attributes="action string:${base_url}pre_logged_in">
 
   <h1 i18n:translate="heading_login_form">Log in</h1>
 
   <dl class="form">
     <dt><label for="username"
                i18n:translate="label_user_name">User name</label></dt>
-    <dd><input type="text" id="username" name="__ac_name" 
+    <dd><input type="text" id="username" name="ac_name" 
                class="focus" size="20" value=""
                tal:attributes="value python:request.get('__ac_name', '')" /></dd>
     <dt><label for="password"

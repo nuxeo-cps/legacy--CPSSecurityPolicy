@@ -78,6 +78,13 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
         self.assert_(
             not 'security_policy' in self.portal.portal_skins.objectIds())
 
+    def testModeSwitch(self):
+        sptool = self.portal.portal_security_policy
+        sptool.switchMode(1)
+        sptool.switchMode(0)
+        self.assert_(
+            not 'security_policy' in self.portal.portal_skins.objectIds())
+
     def testNotifyLoginAttempt(self):
         sptool = self.portal.portal_security_policy
         sptool.switchToSecureMode()
@@ -97,11 +104,22 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
         sptool.increaseLoginFailureCount('toto')
         self.assertEquals(sptool.getLoginFailureCount('toto'), 2)
         sptool.increaseLoginFailureCount('toto')
-        sptool.increaseLoginFailureCount('toto')
         self.assert_(sptool.isUserBanned('toto'))
+        self.assertEquals(len(sptool.listBannedUsers()), 1)
 
         sptool.unbannUser('toto')
         self.assertEquals(sptool.getLoginFailureCount('toto'), 0)
+        self.assert_(not sptool.isUserBanned('toto'))
+
+    def testManageUnbannUser(self):
+        sptool = self.portal.portal_security_policy
+        sptool.switchToSecureMode()
+
+        sptool.increaseLoginFailureCount('toto')
+        sptool.increaseLoginFailureCount('toto')
+        sptool.increaseLoginFailureCount('toto')
+        self.assert_(sptool.isUserBanned('toto'))
+        sptool.manage_unbannUsers(['toto'])
         self.assert_(not sptool.isUserBanned('toto'))
 
     def testPasswordChangeNotification(self):
@@ -118,10 +136,12 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
         self.assert_(sptool._members['toto']['last_login_date'] >= t0)
 
         self.assert_(not sptool.hasPasswordExpired('toto'))
+        self.assertEquals(len(sptool.listExpiredUsers()), 0)
 
         # This one also too
         sptool._members['toto']['last_login_date'] = 0
         self.assert_(sptool.hasPasswordExpired('toto'))
+        self.assertEquals(len(sptool.listExpiredUsers()), 1)
 
 def test_suite():
     suite = unittest.TestSuite()

@@ -123,10 +123,16 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
         if not is_anon:
             self.unbannUser(user_id)
 
+        for member_id in self._members.keys():
+            print member_id, self._members[member_id]
+        print
+
     def increaseLoginFailureCount(self, user_id):
         member_info = self._members.get(user_id)
         if member_info:
-            member_info['login_failure_count'] += 1
+            # Warning: += doesn't work here (?!)
+            member_info['login_failure_count'] = \
+                member_info['login_failure_count'] + 1
         else:
             self._members[user_id] = {'login_failure_count': 1}
 
@@ -137,7 +143,7 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
     def unbannUser(self, user_id):
         member_info = self._members.get(user_id)
         if member_info and member_info.has_key('login_failure_count'):
-            del self._members[user_id]['login_failure_count']
+            self._members[user_id]['login_failure_count'] = 0
 
     def isUserBanned(self, user_id):
         mtool = self.portal_membership
@@ -146,7 +152,7 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
         login_failure_count = self.getLoginFailureCount(user_id)
 
         return (self.allowed_passwd_errors 
-                and login_failure_count > self.allowed_passwd_errors)
+                and login_failure_count >= self.allowed_passwd_errors)
 
     def listBannedUsers(self):
         result = []

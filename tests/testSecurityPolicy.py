@@ -102,6 +102,25 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
         sptool.unbannUser('toto')
         self.assert_(not sptool.isUserBanned('toto'))
 
+    def testPasswordChangeNotification(self):
+        sptool = self.portal.portal_security_policy
+        sptool.switchToSecureMode()
+
+        from time import time
+        t0 = time()
+        sptool.notifyPasswordChange({'id': 'toto', 
+                                     'widget__password': 'toto1234', 
+                                     'widget__confirm': 'toto1234'})
+
+        # This test knows too much about inner data structure
+        self.assert_(sptool._members['toto']['last_login_date'] >= t0)
+
+        self.assert_(not sptool.hasPasswordExpired('toto'))
+
+        # This one also too
+        sptool._members['toto']['last_login_date'] = 0
+        self.assert_(sptool.hasPasswordExpired('toto'))
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestSecurityPolicy))

@@ -24,6 +24,7 @@ from Products.CMFCore.utils import UniqueObject
 from Products.CMFCore.CMFCorePermissions import ManagePortal
 from Products.CPSInstaller.CMFInstaller import CMFInstaller
 from BTrees.OOBTree import OOBTree
+from time import time
 
 class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
     """FIXME"""
@@ -54,8 +55,9 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
     security.declareProtected(ManagePortal, 'manage_banned_users')
     manage_banned_users = DTMLFile('zmi/manage_banned_users', globals())
 
+    security.declareProtected(ManagePortal, 'manage_editProperties')
     def manage_editProperties(self):
-        """ XXX """
+        """Hook to switch mode when secure mode property changes"""
         new_mode = self.REQUEST.form.get('secure', False)
         if new_mode != self.secure:
             self.switchMode(new_mode)
@@ -89,11 +91,26 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
             widget.check_letter = check_letter
             widget.check_digit = check_digit
 
-    def notifyPasswordChange(self, user_id):
-        pass
+    # Hook, called from cpsdirectory_entry_edit_form
+    def notifyPasswordChange(self, form):
+        user_id = form.get('id')
+        password = form.get('widget__password')
+        confirm = form.get('widget__confirm')
+        # Must make sure that passwd is really changed
+        if password and password == confirm:
+            member_info = self._members.get(user_id)
+            if not member_info:
+                member_info = self._members[user_id] = {}
+            member_info['last_login_date'] = time()
 
     def hasPasswordExpired(self, user_id):
-        pass
+        if not self.change_passwd_after_months:
+            return False
+
+        member_info = self._members.get(user_id, {})
+        last_login_date = member_info.get('last_login_date', 0)
+        return (time() - last_login_date
+                > self.change_passwd_after_months * 60 * 60 * 24 * 31)
 
     def notifyLoginAttempt(self, user_id):
         mtool = self.portal_membership
@@ -107,14 +124,14 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
             self.unbannUser(user_id)
 
     def increaseFailureCount(self, user_id):
-        member_info = self._members.get(user_id, None)
+        member_info = self._members.get(user_id)
         if member_info:
             member_info['failed_login_attempts'] += 1
         else:
             self._members[user_id] = {'failed_login_attempts': 1}
 
     def unbannUser(self, user_id):
-        member_info = self._members.get(user_id, None)
+        member_info = self._members.get(user_id)
         if member_info and member_info.has_key('failed_login_attempts'):
             del self._members[user_id]['failed_login_attempts']
 
@@ -135,18 +152,14 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
                 result.append(member_id)
         return result
 
-    def resetUsers(self, member_ids=[]):
+    security.declareProtected(ManagePortal, 'manage_unbannUsers')
+    def manage_unbannUsers(self, member_ids=[], REQUEST=None):
+        """Unbann users in <member_ids>"""
         for member_id in member_ids:
             if self.isUserBanned(member_id):
                 self.unbannUser(member_id)
-
-    def showUsers(self):
-        """XXX"""
-        l = []
-        for k, v in self._members.items():
-            l.append("%s: %s" % (k, v))
-        return str(l)
-        return '\n'.join(l)
+        if REQUEST:
+            REQUEST.RESPONSE.redirect(REQUEST.URL1 + '/manage_banned_users')
 
 InitializeClass(SecurityPolicyTool)
 

@@ -3,10 +3,30 @@
 <dtml-var manage_tabs>
 </dtml-let>
 
-<dtml-in listBannedUsers>
+<dtml-let banned_users="listBannedUsers()">
 
-<dtml-var sequence-item><br>
+<dtml-if banned_users>
+<h3>The following users have been banned</h3>
+
+<form action="manage_unbannUsers">
+
+<dtml-in banned_users>
+
+<input type="checkbox" name="member_ids:list" value="<dtml-var sequence-item>"
+> <dtml-var sequence-item><br>
 
 </dtml-in>
+
+<input type="submit" value="Reset users">
+
+</form>
+
+<dtml-else>
+
+<h3>No user has been banned</h3>
+
+</dtml-if>
+
+</dtml-let>
 
 <dtml-var manage_page_footer>

@@ -123,10 +123,6 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
         if not is_anon:
             self.unbannUser(user_id)
 
-        for member_id in self._members.keys():
-            print member_id, self._members[member_id]
-        print
-
     def increaseLoginFailureCount(self, user_id):
         member_info = self._members.get(user_id)
         if member_info:

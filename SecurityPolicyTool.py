@@ -46,7 +46,7 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
          'label': 'Change password after (months)'},
         )
     manage_options = (PropertyManager.manage_options
-        + ({'label': 'Banned Users', 'action': 'manage_banned_users'},)
+        + ({'label': 'Users', 'action': 'manage_banned_users'},)
         + SimpleItem.manage_options)
 
     def __init__(self):
@@ -169,6 +169,13 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
                 self.unbannUser(member_id)
         if REQUEST:
             REQUEST.RESPONSE.redirect(REQUEST.URL1 + '/manage_banned_users')
+
+    def listExpiredUsers(self):
+        result = []
+        for member_id in self._members.keys():
+            if self.hasPasswordExpired(member_id):
+                result.append(member_id)
+        return result
 
 InitializeClass(SecurityPolicyTool)
 

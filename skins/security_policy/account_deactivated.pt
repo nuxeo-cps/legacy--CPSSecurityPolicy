@@ -1,9 +1,12 @@
-<html>
-<body>
+<metal:html>
+<metal:body use-macro="here/main_template/macros/master">
+<metal:main fill-slot="main">
+
 <p>
 Ce compte à été désactivé à cause d'erreur répétées lors de tentatives de
 connexions. Veuillez contacter directement l'administrateur du site pour le
 réactiver.
 </p>
-</body>
-</html>
+</metal:main>
+</metal:body>
+</metal:html>

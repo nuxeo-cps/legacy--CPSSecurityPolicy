@@ -26,6 +26,10 @@ if sptool.isUserBanned(ac_name):
 d = request.form
 d['__ac_name'] = ac_name
 params = urlencode(d)
-response.redirect(request.URL1 + '/logged_in?' + params)
 
+if sptool.hasPasswordExpired(ac_name):
+    response.redirect(request.URL1 + '/must_change_password?' + params)
+else:
+    response.redirect(request.URL1 + '/logged_in?' + params)
 return ''
+

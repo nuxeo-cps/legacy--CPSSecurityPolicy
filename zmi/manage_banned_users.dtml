@@ -1,12 +1,13 @@
 <dtml-var manage_page_header>
-<dtml-let management_view="'Banned Users'">
+<dtml-let management_view="'Users'">
 <dtml-var manage_tabs>
 </dtml-let>
 
 <dtml-let banned_users="listBannedUsers()">
 
 <dtml-if banned_users>
-<h3>The following users have been banned</h3>
+<h3>The following users have been banned due to several failed login
+attempts</h3>
 
 <form action="manage_unbannUsers">
 
@@ -24,6 +25,25 @@
 <dtml-else>
 
 <h3>No user has been banned</h3>
+
+</dtml-if>
+
+</dtml-let>
+
+<dtml-let expired_users="listExpiredUsers()">
+
+<dtml-if expired_users>
+<h3>The following users must change their password</h3>
+
+<dtml-in expired_users>
+
+<dtml-var sequence-item><br>
+
+</dtml-in>
+
+<dtml-else>
+
+<h3>No user has expired password</h3>
 
 </dtml-if>
 

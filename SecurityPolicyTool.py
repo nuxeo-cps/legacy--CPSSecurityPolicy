@@ -118,32 +118,35 @@ class SecurityPolicyTool(UniqueObject, SimpleItem, PropertyManager):
         user_exists = not not mtool.getMemberById(user_id)
 
         if is_anon and user_exists:
-            self.increaseFailureCount(user_id)
+            self.increaseLoginFailureCount(user_id)
 
         if not is_anon:
             self.unbannUser(user_id)
 
-    def increaseFailureCount(self, user_id):
+    def increaseLoginFailureCount(self, user_id):
         member_info = self._members.get(user_id)
         if member_info:
-            member_info['failed_login_attempts'] += 1
+            member_info['login_failure_count'] += 1
         else:
-            self._members[user_id] = {'failed_login_attempts': 1}
+            self._members[user_id] = {'login_failure_count': 1}
+
+    def getLoginFailureCount(self, user_id):
+        member_info = self._members.get(user_id, {})
+        return member_info.get('login_failure_count', 0)
 
     def unbannUser(self, user_id):
         member_info = self._members.get(user_id)
-        if member_info and member_info.has_key('failed_login_attempts'):
-            del self._members[user_id]['failed_login_attempts']
+        if member_info and member_info.has_key('login_failure_count'):
+            del self._members[user_id]['login_failure_count']
 
     def isUserBanned(self, user_id):
         mtool = self.portal_membership
         is_anon = mtool.isAnonymousUser()
         user_exists = not not mtool.getMemberById(user_id)
-        member_info = self._members.get(user_id, {})
-        failed_attempts = member_info.get('failed_login_attempts', 0)
+        login_failure_count = self.getLoginFailureCount(user_id)
 
         return (self.allowed_passwd_errors 
-                and failed_attempts > self.allowed_passwd_errors)
+                and login_failure_count > self.allowed_passwd_errors)
 
     def listBannedUsers(self):
         result = []

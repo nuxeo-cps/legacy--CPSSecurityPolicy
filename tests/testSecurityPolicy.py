@@ -91,15 +91,17 @@ class TestSecurityPolicy(CPSSecurityPolicyTestCase.TestCase):
         sptool = self.portal.portal_security_policy
         sptool.switchToSecureMode()
 
-        sptool.increaseFailureCount('toto')
-        self.assertEquals(sptool._members['toto']['failed_login_attempts'], 1)
-        sptool.increaseFailureCount('toto')
-        self.assertEquals(sptool._members['toto']['failed_login_attempts'], 2)
-        sptool.increaseFailureCount('toto')
-        sptool.increaseFailureCount('toto')
+        self.assertEquals(sptool.getLoginFailureCount('toto'), 0)
+        sptool.increaseLoginFailureCount('toto')
+        self.assertEquals(sptool.getLoginFailureCount('toto'), 1)
+        sptool.increaseLoginFailureCount('toto')
+        self.assertEquals(sptool.getLoginFailureCount('toto'), 2)
+        sptool.increaseLoginFailureCount('toto')
+        sptool.increaseLoginFailureCount('toto')
         self.assert_(sptool.isUserBanned('toto'))
 
         sptool.unbannUser('toto')
+        self.assertEquals(sptool.getLoginFailureCount('toto'), 0)
         self.assert_(not sptool.isUserBanned('toto'))
 
     def testPasswordChangeNotification(self):
